@@ -1,0 +1,106 @@
+package com.example.pastpaper;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class MainActivity extends AppCompatActivity {
+
+    TextView tv1,tv2;
+    EditText et1,et2,et3;
+    Button bt1,bt2;
+
+    SQLiteDatabase db;
+
+    String roll_number;
+    String name;
+    String department;
+
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+
+        //Findings views by id
+        tv1 = (TextView) findViewById(R.id.tv1);
+        tv2= (TextView) findViewById(R.id.tv2);
+        et1 = (EditText) findViewById(R.id.et1);
+        et2 = (EditText) findViewById(R.id.et2);
+        et3 = (EditText) findViewById(R.id.et3);
+        bt1 = (Button) findViewById(R.id.bt1);
+        bt2 = (Button) findViewById(R.id.bt2);
+
+
+        DBHelper dbHelper = new DBHelper(this);
+
+        db = dbHelper.getWritableDatabase();
+        db = dbHelper.getReadableDatabase();
+
+        bt1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                create();
+            }
+        });
+
+        bt2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                read(tv2);
+            }
+        });
+    }
+
+    public void create() {
+        roll_number = et1.getText().toString();
+        name = et2.getText().toString();
+        department = et3.getText().toString();
+
+        if (roll_number.equals("") || name.equals("") || department.equals("")){
+            Toast.makeText(this, "Please enter values", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        else {
+            ContentValues values = new ContentValues();
+            values.put("rollno",roll_number);
+            values.put("name",name);
+            values.put("dept",department);
+
+            db.insert("student",null,values);
+            Toast.makeText(this, "Inserted...!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void read(TextView tv2) {
+
+        StringBuffer buffer = new StringBuffer();
+
+        Cursor c = db.rawQuery("select * from student",null);
+
+        while (c.moveToNext()){
+            buffer.append("Enroll Number: ").append(c.getString(0)).append("\n");
+            buffer.append("Name: ").append(c.getString(1)).append("\n");
+            buffer.append("Department: ").append(c.getString(2)).append("\n\n");
+        }
+        //Toast.makeText(this, buffer.toString(), Toast.LENGTH_SHORT).show();
+
+        c.close(); // Always close the cursor to prevent memory leaks
+
+        tv2.setText(buffer.toString());
+    }
+}
